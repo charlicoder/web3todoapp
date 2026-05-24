@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-e185afa792c9e36932cda042b820866a5283e81e",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.5.1"
+  },
+  "userSourceNameMap": {
+    "contracts/TodoList.sol": "project/contracts/TodoList.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/TodoList.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/**\n * @title TodoList\n * @dev A decentralized todo list where each user manages their own tasks.\n *      Anyone can read all todos across all users (public ledger).\n */\ncontract TodoList {\n\n    // ─────────────────────────────────────────────\n    //  Data Structures\n    // ─────────────────────────────────────────────\n\n    enum Status { Pending, InProgress, Completed }\n\n    struct Todo {\n        uint256 id;\n        address owner;\n        string  title;\n        string  description;\n        Status  status;\n        uint256 createdAt;\n        uint256 updatedAt;\n        bool    exists;      // soft-delete guard\n    }\n\n    // ─────────────────────────────────────────────\n    //  Storage\n    // ─────────────────────────────────────────────\n\n    /// @dev Global auto-increment ID counter\n    uint256 private _nextId;\n\n    /// @dev All todos ever created, keyed by global ID\n    mapping(uint256 => Todo) private _todos;\n\n    /// @dev Per-user list of their todo IDs\n    mapping(address => uint256[]) private _userTodoIds;\n\n    /// @dev All IDs that have ever been created (to support global listing)\n    uint256[] private _allIds;\n\n    // ─────────────────────────────────────────────\n    //  Events\n    // ─────────────────────────────────────────────\n\n    event TodoCreated(\n        uint256 indexed id,\n        address indexed owner,\n        string  title,\n        uint256 createdAt\n    );\n\n    event TodoStatusUpdated(\n        uint256 indexed id,\n        address indexed owner,\n        Status  oldStatus,\n        Status  newStatus,\n        uint256 updatedAt\n    );\n\n    event TodoDeleted(\n        uint256 indexed id,\n        address indexed owner,\n        uint256 deletedAt\n    );\n\n    // ─────────────────────────────────────────────\n    //  Modifiers\n    // ─────────────────────────────────────────────\n\n    modifier onlyOwner(uint256 id) {\n        require(_todos[id].exists,           \"TodoList: todo does not exist\");\n        require(_todos[id].owner == msg.sender, \"TodoList: not the owner\");\n        _;\n    }\n\n    modifier todoExists(uint256 id) {\n        require(_todos[id].exists, \"TodoList: todo does not exist\");\n        _;\n    }\n\n    // ─────────────────────────────────────────────\n    //  Write Functions\n    // ─────────────────────────────────────────────\n\n    /**\n     * @notice Create a new todo item.\n     * @param title       Short title (non-empty).\n     * @param description Optional longer description.\n     * @return id         The newly assigned todo ID.\n     */\n    function createTodo(\n        string calldata title,\n        string calldata description\n    ) external returns (uint256 id) {\n        require(bytes(title).length > 0, \"TodoList: title cannot be empty\");\n\n        id = _nextId++;\n\n        _todos[id] = Todo({\n            id:          id,\n            owner:       msg.sender,\n            title:       title,\n            description: description,\n            status:      Status.Pending,\n            createdAt:   block.timestamp,\n            updatedAt:   block.timestamp,\n            exists:      true\n        });\n\n        _userTodoIds[msg.sender].push(id);\n        _allIds.push(id);\n\n        emit TodoCreated(id, msg.sender, title, block.timestamp);\n    }\n\n    /**\n     * @notice Update the status of one of your todos.\n     * @param id        The todo ID to update.\n     * @param newStatus The new status value.\n     */\n    function updateStatus(uint256 id, Status newStatus)\n        external\n        onlyOwner(id)\n    {\n        Status old = _todos[id].status;\n        require(old != newStatus, \"TodoList: status unchanged\");\n\n        _todos[id].status    = newStatus;\n        _todos[id].updatedAt = block.timestamp;\n\n        emit TodoStatusUpdated(id, msg.sender, old, newStatus, block.timestamp);\n    }\n\n    /**\n     * @notice Permanently delete one of your todos.\n     * @param id The todo ID to delete.\n     */\n    function deleteTodo(uint256 id) external onlyOwner(id) {\n        _todos[id].exists = false;\n\n        emit TodoDeleted(id, msg.sender, block.timestamp);\n    }\n\n    // ─────────────────────────────────────────────\n    //  Read Functions — My Todos\n    // ─────────────────────────────────────────────\n\n    /**\n     * @notice Return all active todos belonging to the caller.\n     * @return todos Array of Todo structs (deleted items excluded).\n     */\n    function getMyTodos() external view returns (Todo[] memory todos) {\n        uint256[] storage ids = _userTodoIds[msg.sender];\n        return _filterActive(ids);\n    }\n\n    /**\n     * @notice Return a single todo by ID (must be the owner).\n     */\n    function getMyTodo(uint256 id)\n        external\n        view\n        onlyOwner(id)\n        returns (Todo memory)\n    {\n        return _todos[id];\n    }\n\n    // ─────────────────────────────────────────────\n    //  Read Functions — All Todos\n    // ─────────────────────────────────────────────\n\n    /**\n     * @notice Return ALL active todos across every user.\n     * @dev    Iterates the full history; fine for moderate scale.\n     *         For very large deployments consider pagination via\n     *         getAllTodosPaginated().\n     */\n    function getAllTodos() external view returns (Todo[] memory) {\n        return _filterActive(_allIds);\n    }\n\n    /**\n     * @notice Paginated version of getAllTodos.\n     * @param offset  Start index in the raw (including deleted) list.\n     * @param limit   Maximum number of active results to return.\n     * @return todos  Active todos in the requested window.\n     * @return total  Total raw entries (use for pagination math).\n     */\n    function getAllTodosPaginated(uint256 offset, uint256 limit)\n        external\n        view\n        returns (Todo[] memory todos, uint256 total)\n    {\n        total = _allIds.length;\n        if (offset >= total) {\n            return (new Todo[](0), total);\n        }\n\n        uint256 end = offset + limit;\n        if (end > total) end = total;\n\n        // Two-pass: count then fill\n        uint256 count;\n        for (uint256 i = offset; i < end; i++) {\n            if (_todos[_allIds[i]].exists) count++;\n        }\n\n        todos = new Todo[](count);\n        uint256 idx;\n        for (uint256 i = offset; i < end; i++) {\n            if (_todos[_allIds[i]].exists) {\n                todos[idx++] = _todos[_allIds[i]];\n            }\n        }\n    }\n\n    /**\n     * @notice Return all active todos for a specific user (public).\n     * @param user The wallet address to query.\n     */\n    function getTodosOf(address user)\n        external\n        view\n        returns (Todo[] memory)\n    {\n        return _filterActive(_userTodoIds[user]);\n    }\n\n    /**\n     * @notice Return a single todo by ID (public read).\n     */\n    function getTodoById(uint256 id)\n        external\n        view\n        todoExists(id)\n        returns (Todo memory)\n    {\n        return _todos[id];\n    }\n\n    /**\n     * @notice Total number of todos ever created (including deleted).\n     */\n    function totalTodos() external view returns (uint256) {\n        return _allIds.length;\n    }\n\n    // ─────────────────────────────────────────────\n    //  Internal Helpers\n    // ─────────────────────────────────────────────\n\n    function _filterActive(uint256[] storage ids)\n        internal\n        view\n        returns (Todo[] memory result)\n    {\n        // Pass 1: count active\n        uint256 count;\n        for (uint256 i; i < ids.length; i++) {\n            if (_todos[ids[i]].exists) count++;\n        }\n\n        // Pass 2: fill\n        result = new Todo[](count);\n        uint256 idx;\n        for (uint256 i; i < ids.length; i++) {\n            if (_todos[ids[i]].exists) {\n                result[idx++] = _todos[ids[i]];\n            }\n        }\n    }\n}\n"
+      }
+    }
+  }
+}

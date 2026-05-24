@@ -6,17 +6,44 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy:local": "hardhat ignition deploy ignition/modules/TodoListModule.ts --network localhost",
+    "deploy:sepolia": "hardhat ignition deploy ignition/modules/TodoListModule.ts --network sepolia --deployment-id todolist-sepolia",
+    "deploy:mainnet": "hardhat ignition deploy ignition/modules/TodoListModule.ts --network mainnet --deployment-id todolist-mainnet",
+    "verify:sepolia": "hardhat ignition verify --network sepolia --deployment-id todolist-sepolia",
+    "verify:mainnet": "hardhat ignition verify --network mainnet --deployment-id todolist-mainnet",
+    "clean": "hardhat clean"
   },
   "dependencies": {
     "next": "16.2.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "ethers": "^6.16.0",
+    "web3modal": "^1.9.12"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.12",
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "^3.0.9",
+    "@nomicfoundation/hardhat-ignition": "^3.1.6",
+    "@nomicfoundation/hardhat-mocha": "^3.0.20",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.9",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.6",
+    "@nomicfoundation/hardhat-typechain": "^3.0.9",
     "@tailwindcss/postcss": "^4",
+    "@types/chai": "^5.2.3",
+    "@types/chai-as-promised": "^8.0.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.19.19",
+    "@types/react": "19.2.15",
+    "chai": "^6.2.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4"
-  }
+
+    "forge-std": "github:foundry-rs/forge-std#v1.9.7",
+    "hardhat": "^3.5.1",
+    "mocha": "^11.7.6",
+    "tailwindcss": "^4",
+    "typescript": "~6.0.3"
+  },
+  "type": "module"
 }
