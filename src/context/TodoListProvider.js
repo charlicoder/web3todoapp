@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import TodoListContext from "./TodoListContext";
-import { TODO_LIST_ABI, TODO_LIST_ADDRESS } from "../../constant";
+import { TODO_LIST_ABI, TODO_LIST_ADDRESS } from "../constant";
 
 // ── Status enum mirror (matches Solidity: 0=Pending, 1=InProgress, 2=Completed)
 const StatusLabels = ["Pending", "InProgress", "Completed"];

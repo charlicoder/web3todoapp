@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext } from "react";
-import { TODO_LIST_ABI, TODO_LIST_ADDRESS } from "../../constant";
+import { TODO_LIST_ABI, TODO_LIST_ADDRESS } from "../constant";
 
 
 const TodoListContext = createContext({});

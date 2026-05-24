@@ -1,6 +1,6 @@
 import "./globals.css";
-import TodoListContextProvider from "./context/TodoListProvider";
-import SettingsProvider from "./context/SettingsProvider";
+import TodoListContextProvider from "../context/TodoListProvider";
+import SettingsProvider from "../context/SettingsProvider";
 
 export const metadata = {
     title: "Web3 Todo — Decentralized Task Manager",

@@ -1,8 +1,8 @@
 "use client";
 
 import { useContext, useState, useEffect } from "react";
-import TodoListContext from "./context/TodoListContext";
-import SettingsContext from "./context/SettingsContext";
+import TodoListContext from "../context/TodoListContext";
+import SettingsContext from "../context/SettingsContext";
 
 const truncateAddress = (addr) => {
     if (!addr) return "";
