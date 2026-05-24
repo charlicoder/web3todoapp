@@ -12,7 +12,8 @@
     "deploy:mainnet": "hardhat ignition deploy ignition/modules/TodoListModule.ts --network mainnet --deployment-id todolist-mainnet",
     "verify:sepolia": "hardhat ignition verify --network sepolia --deployment-id todolist-sepolia",
     "verify:mainnet": "hardhat ignition verify --network mainnet --deployment-id todolist-mainnet",
-    "clean": "hardhat clean"
+    "clean": "hardhat clean",
+    "audit": "slither ./contracts"
   },
   "dependencies": {
     "next": "16.2.6",
@@ -38,7 +39,6 @@
     "chai": "^6.2.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-
     "forge-std": "github:foundry-rs/forge-std#v1.9.7",
     "hardhat": "^3.5.1",
     "mocha": "^11.7.6",

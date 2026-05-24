@@ -15,6 +15,7 @@ A decentralized todo list application built with [Next.js](https://nextjs.org) a
 - [Running the Application](#running-the-application)
 - [Environment Configuration](#environment-configuration)
 - [Testing](#testing)
+- [Smart Contract Auditing](#smart-contract-auditing)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
 
@@ -338,7 +339,138 @@ npx hardhat test test/TodoList.ts
 npx hardhat coverage
 ```
 
-## 🔧 Troubleshooting
+## � Smart Contract Auditing
+
+Slither is a powerful static analysis tool for Solidity smart contracts that helps identify security vulnerabilities, code smells, and potential issues before deployment.
+
+### Prerequisites for Auditing
+
+- **Python 3.8+** - [Download](https://www.python.org/downloads/)
+- **pip** - Comes with Python
+
+### Setup Slither
+
+#### Step 1: Create a Python Virtual Environment
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+
+# On Windows:
+venv\Scripts\activate
+```
+
+#### Step 2: Install Slither-Analyzer
+
+```bash
+# Install slither-analyzer in the virtual environment
+pip install slither-analyzer
+```
+
+Verify the installation:
+
+```bash
+slither --version
+```
+
+### Run Security Audit
+
+#### Basic Audit
+
+```bash
+npm run audit
+```
+
+This command runs:
+```bash
+slither ./contracts
+```
+
+And will analyze all Solidity files in the `contracts/` directory.
+
+#### Detailed Audit Report
+
+For a more comprehensive analysis with JSON output:
+
+```bash
+slither ./contracts --json report.json
+```
+
+This generates a detailed JSON report in `report.json` that can be reviewed programmatically.
+
+#### Audit Specific Contract
+
+To audit only the TodoList contract:
+
+```bash
+slither ./contracts/TodoList.sol
+```
+
+### Understanding Slither Output
+
+Slither reports vulnerabilities and issues with severity levels:
+
+- **High** - Critical security issues that must be fixed
+- **Medium** - Issues that should be addressed
+- **Low** - Code quality and best practice recommendations
+- **Informational** - Additional information and observations
+
+### Common Issues Found and How to Fix
+
+**Example Output:**
+```
+TodoList.sol:15:5: [reentrancy] Reentrancy vulnerability detected
+TodoList.sol:42:5: [unused-return] Return value not used
+TodoList.sol:89:3: [naming-convention] Function name doesn't follow conventions
+```
+
+### Audit Checklist Before Deployment
+
+- [ ] Run `npm run test` - All tests pass
+- [ ] Run `npm run audit` - No high/critical issues
+- [ ] Review Slither report for medium-severity issues
+- [ ] Check for reentrancy vulnerabilities
+- [ ] Verify access controls
+- [ ] Ensure input validation
+- [ ] Check for overflow/underflow issues
+
+### Deactivate Virtual Environment
+
+When finished with auditing, deactivate the virtual environment:
+
+```bash
+deactivate
+```
+
+### Troubleshooting Slither
+
+**Issue: `slither: command not found`**
+
+**Solution:**
+- Ensure virtual environment is activated: `source venv/bin/activate`
+- Verify installation: `pip list | grep slither`
+- Reinstall if necessary: `pip install --upgrade slither-analyzer`
+
+**Issue: Python version error**
+
+**Solution:**
+- Check Python version: `python3 --version`
+- Ensure Python 3.8 or higher is installed
+- Create new virtual environment with correct Python version: `python3.11 -m venv venv`
+
+**Issue: Permission denied**
+
+**Solution (macOS/Linux):**
+```bash
+chmod +x venv/bin/activate
+source venv/bin/activate
+```
+
+## �🔧 Troubleshooting
 
 ### Issue: MetaMask Not Detecting Contract
 
